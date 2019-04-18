@@ -18,7 +18,8 @@ try:
     sys.setdefaultencoding('utf-8')
 except:
     pass
-    
+
+# 断句标志
 sentence_delimiters = ['?', '!', ';', '？', '！', '。', '；', '……', '…', '\n']
 allow_speech_tags = ['an', 'i', 'j', 'l', 'n', 'nr', 'nrfg', 'ns', 'nt', 'nz', 't', 'v', 'vd', 'vn', 'eng']
 
@@ -82,15 +83,17 @@ class AttrDict(dict):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
-
+# 使用list错位zip的找到所有的两两组合。避免多次循环迭代。
 def combine(word_list, window = 2):
     """构造在window下的单词组合，用来构造单词之间的边。
+    yield 表示该函数是一个生成器
     
     Keyword arguments:
     word_list  --  list of str, 由单词组成的列表。
     windows    --  int, 窗口大小。
     """
-    if window < 2: window = 2
+    if window < 2:
+        window = 2
     for x in xrange(1, window):
         if x >= len(word_list):
             break
@@ -138,6 +141,8 @@ def sort_words(vertex_source, edge_source, window = 2, pagerank_config = {'alpha
     _vertex_source = vertex_source
     _edge_source   = edge_source
     words_number   = 0
+
+    # 将文章中出现的所有word填入wordindex，并建立word和index是双向词典
     for word_list in _vertex_source:
         for word in word_list:
             if not word in word_index:
@@ -145,21 +150,31 @@ def sort_words(vertex_source, edge_source, window = 2, pagerank_config = {'alpha
                 index_word[words_number] = word
                 words_number += 1
 
+    # 构造图,初始化为0，使用邻接矩阵。大小取决与保留的节点数
     graph = np.zeros((words_number, words_number))
-    
+
+    # 初始化有关联的边的权值为1
     for word_list in _edge_source:
+        # 遍历该句子中窗口距离内的所有元素，算作相邻
         for w1, w2 in combine(word_list, window):
+            # 如果两个词都在要保留的节点中，赋值权重为1
             if w1 in word_index and w2 in word_index:
                 index1 = word_index[w1]
                 index2 = word_index[w2]
                 graph[index1][index2] = 1.0
                 graph[index2][index1] = 1.0
 
+    # 将二维数组转为nx.pagerank可以使用的矩阵
     debug('graph:\n', graph)
-    
     nx_graph = nx.from_numpy_matrix(graph)
+
+    # 执行pageRank，得到所有点的分数
     scores = nx.pagerank(nx_graph, **pagerank_config)          # this is a dict
+
+    # 对分数进行排序.分数为map
     sorted_scores = sorted(scores.items(), key = lambda item: item[1], reverse=True)
+
+    # 构造一个结构题，保留结果到list中。
     for index, score in sorted_scores:
         item = AttrDict(word=index_word[index], weight=score)
         sorted_words.append(item)

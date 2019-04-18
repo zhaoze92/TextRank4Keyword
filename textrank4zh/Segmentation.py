@@ -117,16 +117,20 @@ class Segmentation(object):
         
     def segment(self, text, lower = False):
         text = util.as_text(text)
+        # 对文本进行句子划分
         sentences = self.ss.segment(text)
-        words_no_filter = self.ws.segment_sentences(sentences=sentences, 
+
+        # 对每个句子进行分词,不进行词语过滤
+        words_no_filter = self.ws.segment_sentences(sentences=sentences,
                                                     lower = lower, 
                                                     use_stop_words = False,
                                                     use_speech_tags_filter = False)
+        # 对句子进行分词，并过滤停用词
         words_no_stop_words = self.ws.segment_sentences(sentences=sentences, 
                                                     lower = lower, 
                                                     use_stop_words = True,
                                                     use_speech_tags_filter = False)
-
+        # 对句子进行分词，只保留指定词性
         words_all_filters = self.ws.segment_sentences(sentences=sentences, 
                                                     lower = lower, 
                                                     use_stop_words = True,

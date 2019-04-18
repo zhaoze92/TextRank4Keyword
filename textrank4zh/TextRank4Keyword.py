@@ -7,8 +7,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import networkx as nx
-import numpy as np
+# import networkx as nx
+# import numpy as np
 
 from . import util
 from .Segmentation import Segmentation
@@ -64,8 +64,10 @@ class TextRank4Keyword(object):
         self.index_word = {}
         self.keywords = []
         self.graph = None
-        
+
+        # 划分句子，对每个句子进行分词，并过滤指定单词
         result = self.seg.segment(text=text, lower=lower)
+
         self.sentences = result.sentences
         self.words_no_filter = result.words_no_filter
         self.words_no_stop_words = result.words_no_stop_words
@@ -80,6 +82,8 @@ class TextRank4Keyword(object):
 
         options = ['no_filter', 'no_stop_words', 'all_filters']
 
+        # 默认节点只保留指定词性单词，边界为去除停用词。都是句子单词。
+        # 节点用于最后的计算使用的权重，边界词用来判断词语的相邻关系。
         if vertex_source in options:
             _vertex_source = result['words_'+vertex_source]
         else:
